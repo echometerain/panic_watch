@@ -58,8 +58,7 @@
 					(type default)
 				)
 				(fill
-					(type color)
-					(color 255 255 194 1)
+					(type background)
 				)
 			)
 			(pin power_in line
@@ -264,8 +263,7 @@
 					(type default)
 				)
 				(fill
-					(type color)
-					(color 255 255 194 1)
+					(type background)
 				)
 			)
 			(pin power_in line

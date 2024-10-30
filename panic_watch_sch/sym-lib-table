@@ -1,6 +1,5 @@
 (sym_lib_table
   (version 7)
-  (lib (name "2024-10-30_02-00-38")(type "KiCad")(uri "${KIPRJMOD}/KiCADv6/2024-10-30_02-00-38.kicad_sym")(options "")(descr ""))
   (lib (name "panic_lib")(type "KiCad")(uri "${KIPRJMOD}/panic_lib.kicad_sym")(options "")(descr ""))
   (lib (name "STM32F401RET6")(type "KiCad")(uri "${KIPRJMOD}/STM32_libs/STM32F401RET6.kicad_sym")(options "")(descr ""))
 )
