@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">&#x0A;<refactoring comment="Rename resource &apos;panic_watch&apos; to &apos;panic_watch_reciever&apos;" description="Rename resource &apos;panic_watch&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="/panic_watch" name="panic_watch_reciever" stamp="1730257435150" updateReferences="true"/>&#x0A;<refactoring comment="Rename resource &apos;panic_watch_reciever&apos; to &apos;panic_reciever&apos;" description="Rename resource &apos;panic_watch_reciever&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="/panic_watch_reciever" name="panic_reciever" stamp="1730290718721" updateReferences="true"/>
+</session>
