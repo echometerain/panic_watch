@@ -174,3 +174,22 @@ int _execve(char *name, char **argv, char **env)
   errno = ENOMEM;
   return -1;
 }
+
+// User code
+
+//Courtesy of Subzee (https://stackoverflow.com/questions/69695956/printing-in-c-to-ide-console-on-stm32cubeide)
+#define DEMCR           *((volatile uint32_t*) 0xE000EDFCU)
+
+#define ITM_STIMULUS_PORT0  *((volatile uint32_t*) 0xE0000000)
+#define ITM_TRACE_EN        *((volatile uint32_t*) 0xE0000E00)
+
+void ITM_SendChar(uint8_t ch) {
+	DEMCR |= (1 << 24);
+
+	ITM_TRACE_EN |= (1 << 0);
+
+	while (!(ITM_STIMULUS_PORT0 & 1))
+		;
+
+	ITM_STIMULUS_PORT0 = ch;
+}
