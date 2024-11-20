@@ -82,6 +82,72 @@ static void MX_TIM1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint32_t ADC_Read(void) {
+    HAL_ADC_Start(&hadc1);
+    if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK) {
+        return HAL_ADC_GetValue(&hadc1);
+    }
+    return 0;
+}
+
+float voltage(uint32_t adc_value) {
+	return (float)adc_value / 4095 * 3.3;
+}
+
+float Calculate_Resistance(uint32_t adc_value) {
+    // Convert ADC value to voltage
+    float V_out = (float)adc_value / 4095 * 3.3;
+    // Apply voltage divider formula to calculate unknown resistance
+    float R_unknown = 220 * V_out / (3.3 - V_out);
+    return R_unknown;
+}
+
+float Calculate_MicroS(float resistance) {
+	return 1 / resistance * 1000000;
+}
+
+void floatToString(float value, char* str, uint8_t precision) {
+    int intPart = (int)value; // Extract the integer part
+    float fracPart = value - intPart; // Extract the fractional part
+
+    // Convert the integer part to string
+    char* temp = str;
+    if (intPart == 0) {
+        *temp++ = '0'; // Handle zero case
+    } else {
+        if (intPart < 0) {
+            *temp++ = '-'; // Handle negative numbers
+            intPart = -intPart;
+        }
+
+        // Convert integer part to string
+        int reverseInt = 0;
+        while (intPart > 0) {
+            reverseInt = reverseInt * 10 + (intPart % 10);
+            intPart /= 10;
+        }
+
+        // Now reverse the integer part
+        while (reverseInt > 0) {
+            *temp++ = (reverseInt % 10) + '0';
+            reverseInt /= 10;
+        }
+    }
+
+    // Add the decimal point
+    *temp++ = '.';
+
+    // Convert the fractional part to string with specified precision
+    for (uint8_t i = 0; i < precision; i++) {
+        fracPart *= 10;
+        int fracDigit = (int)fracPart;
+        *temp++ = fracDigit + '0';
+        fracPart -= fracDigit;
+    }
+
+    *temp = '\0'; // Null-terminate the string
+}
+
 
 // Debugging output
 // Code credit (Subzee): https://stackoverflow.com/questions/69695956/printing-in-c-to-ide-console-on-stm32cubeide
@@ -208,6 +274,20 @@ int main(void) {
 		}
 	}
 	/* USER CODE END 3 */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
+	  char str[20];
+	  floatToString(Calculate_MicroS(Calculate_Resistance(ADC_Read())), str, 20);
+	  //floatToString(voltage(ADC_Read()), str, 20);
+	  HAL_UART_Transmit(&huart2, str, 20, HAL_MAX_DELAY);
+	  HAL_UART_Transmit(&huart2, "\n", 1, HAL_MAX_DELAY);
+	  HAL_Delay(500);
+    /* USER CODE BEGIN 3 */
+  }
+  /* USER CODE END 3 */
 }
 
 /**
