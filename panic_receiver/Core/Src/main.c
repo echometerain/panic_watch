@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -94,7 +93,8 @@ int main(void)
   MX_USART2_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-
+  uint8_t rxData;
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 0);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -102,9 +102,24 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
+	  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12) == GPIO_PIN_RESET) {
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 1);
+		  HAL_UART_Transmit(&huart2, "True", 5, HAL_MAX_DELAY);
+	  } else {
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 0);
+		  HAL_UART_Transmit(&huart2, "False", 6, HAL_MAX_DELAY);
+	  }
+	  rxData = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12);
+	  /*
+      if (HAL_UART_Receive(&huart2, &rxData, 1, HAL_MAX_DELAY) == HAL_OK)
+      {
+          // Echo received data back to sender
+          HAL_UART_Transmit(&huart2, &rxData, 1, HAL_MAX_DELAY);
+      }
+      */
   }
+    /* USER CODE BEGIN 3 */
+
   /* USER CODE END 3 */
 }
 
