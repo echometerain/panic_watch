@@ -1,3 +1,16 @@
 ideas
 panic_watch_sch/panic_watch_sch-backups
 /.metadata
+
+# STM32 build files
+/*.elf
+/*.hex
+/*.bin
+/*.map
+/*.o
+/*.d
+/*.lst
+/*.a
+/*.axf
+/*.sct
+/*.out
