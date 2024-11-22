@@ -116,6 +116,48 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s) {
 	played_size += SAMP_RATE;
 }
 
+// Code credit: https://www.youtube.com/watch?v=spVIZO-jbxE
+void music_init() {
+	fresult = f_mount(&fs, "/", 1);
+	if (fresult != FR_OK) {
+		printf("ERROR!!! in mounting SD CARD...\n");
+		fflush(stdout);
+		return;
+	} else {
+		printf("SD CARD mounted successfully...\n");
+		fflush(stdout);
+	}
+
+	fresult = f_open(&fil, "/music.wav", FA_READ);
+	f_lseek(&fil, 40); // hard-coded file size descriptor (WAVE standard)
+	f_read(&fil, &recording_size, 4, (UINT*) &fread_size);
+	recording_size /= 2; // 16 bit
+	fresult = f_read(&fil, samples, 2 * SAMP_RATE, (UINT*) &fread_size); // read 16k bytes (1s of data)
+	played_size = 40 + 2 * SAMP_RATE;
+	HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*) samples, SAMP_RATE); // open data transmit hook
+}
+
+// Code credit: https://www.youtube.com/watch?v=spVIZO-jbxE
+void music_loop() {
+	if (callback_result == HALF_COMPLETED) {
+		// read SAMP_RATE amount of bytes
+		// it's 16 bit audio so that's only half
+		f_read(&fil, samples, SAMP_RATE, (UINT*) &fread_size);
+		fflush(stdout);
+		callback_result = UNKNOWN;
+	}
+
+	if (callback_result == FULL_COMPLETED) {
+		f_read(&fil, &samples[SAMP_RATE / 2], SAMP_RATE, (UINT*) &fread_size);
+		fflush(stdout);
+		callback_result = UNKNOWN;
+	}
+
+	if (played_size >= recording_size) {
+		HAL_I2S_DMAStop(&hi2s3);
+	}
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -156,27 +198,8 @@ int main(void) {
 	MX_TIM1_Init();
 	/* USER CODE BEGIN 2 */
 
-	printf("hello\n");
-	fflush(stdout);
-
-	// Code credit: https://www.youtube.com/watch?v=spVIZO-jbxE
-	fresult = f_mount(&fs, "/", 1);
-	if (fresult != FR_OK) {
-		printf("ERROR!!! in mounting SD CARD...\n");
-		fflush(stdout);
-		return 0;
-	} else {
-		printf("SD CARD mounted successfully...\n");
-		fflush(stdout);
-	}
-
-	fresult = f_open(&fil, "/music.wav", FA_READ);
-	f_lseek(&fil, 40); // hard-coded file size descriptor (WAVE standard)
-	f_read(&fil, &recording_size, 4, (UINT*) &fread_size);
-	recording_size /= 2; // 16 bit
-	fresult = f_read(&fil, samples, 2 * SAMP_RATE, (UINT*) &fread_size); // read 16k bytes (1s of data)
-	played_size = 40 + 2 * SAMP_RATE;
-	HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*) samples, SAMP_RATE); // open data transmit hook?
+	// set up music
+	music_init();
 
 	// light up blue LED
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET);
@@ -189,33 +212,7 @@ int main(void) {
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
-		// Code credit: https://www.youtube.com/watch?v=spVIZO-jbxE
-		if (callback_result == HALF_COMPLETED) {
-			// read SAMP_RATE amount of bytes
-			// it's 16 bit audio so that's only half
-			printf("half complete!\n");
-			printf("%d\n", played_size);
-			f_read(&fil, samples, SAMP_RATE, (UINT*) &fread_size);
-//			fresult = f_lseek(&fil, played_size);
-//			printf("%d\n", (int) fresult);
-			fflush(stdout);
-			callback_result = UNKNOWN;
-		}
-
-		if (callback_result == FULL_COMPLETED) {
-			printf("complete!\n");
-			printf("%d\n", played_size);
-			f_read(&fil, &samples[SAMP_RATE / 2], SAMP_RATE,
-					(UINT*) &fread_size);
-//			fresult = f_lseek(&fil, played_size);
-//			printf("%d\n", (int) fresult);
-			fflush(stdout);
-			callback_result = UNKNOWN;
-		}
-
-		if (played_size >= recording_size) {
-			HAL_I2S_DMAStop(&hi2s3);
-		}
+		music_loop();
 	}
 	/* USER CODE END 3 */
 }
