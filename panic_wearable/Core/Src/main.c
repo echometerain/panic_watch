@@ -22,26 +22,18 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "fatfs_sd.h"
-#include "diskio.h"
-#include "user_diskio.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include "sd_sound.h"
+#include "debug_printf.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-typedef enum {
-	UNKNOWN, HALF_COMPLETED, FULL_COMPLETED
-} CallBack_Result_t;
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define SAMP_RATE 8000
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -82,81 +74,6 @@ static void MX_TIM1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-// Debugging output
-// Code credit (Subzee): https://stackoverflow.com/questions/69695956/printing-in-c-to-ide-console-on-stm32cubeide
-// https://www.youtube.com/watch?v=WLqUImiV5Gs
-int _write(int file, char *ptr, int len) {
-	int DataIdx;
-
-	for (DataIdx = 0; DataIdx < len; DataIdx++) {
-		ITM_SendChar(*ptr++);
-	}
-	return len;
-}
-
-// FatFS sound
-// Code credit: https://www.youtube.com/watch?v=spVIZO-jbxE
-FATFS fs; // file system
-FIL fil; // file
-FRESULT fresult; // file result object
-int16_t samples[SAMP_RATE]; // song bytes
-
-uint32_t fread_size = 0;
-uint32_t recording_size = 0;
-uint32_t played_size = 0;
-
-CallBack_Result_t callback_result = UNKNOWN;
-
-void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
-	callback_result = HALF_COMPLETED;
-}
-void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s) {
-	callback_result = FULL_COMPLETED;
-	played_size += SAMP_RATE;
-}
-
-// Code credit: https://www.youtube.com/watch?v=spVIZO-jbxE
-void music_init() {
-	fresult = f_mount(&fs, "/", 1);
-	if (fresult != FR_OK) {
-		printf("ERROR!!! in mounting SD CARD...\n");
-		fflush(stdout);
-		return;
-	} else {
-		printf("SD CARD mounted successfully...\n");
-		fflush(stdout);
-	}
-
-	fresult = f_open(&fil, "/music.wav", FA_READ);
-	f_lseek(&fil, 40); // hard-coded file size descriptor (WAVE standard)
-	f_read(&fil, &recording_size, 4, (UINT*) &fread_size);
-	recording_size /= 2; // 16 bit
-	fresult = f_read(&fil, samples, 2 * SAMP_RATE, (UINT*) &fread_size); // read 16k bytes (1s of data)
-	played_size = 40 + 2 * SAMP_RATE;
-	HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*) samples, SAMP_RATE); // open data transmit hook
-}
-
-// Code credit: https://www.youtube.com/watch?v=spVIZO-jbxE
-void music_loop() {
-	if (callback_result == HALF_COMPLETED) {
-		// read SAMP_RATE amount of bytes
-		// it's 16 bit audio so that's only half
-		f_read(&fil, samples, SAMP_RATE, (UINT*) &fread_size);
-		fflush(stdout);
-		callback_result = UNKNOWN;
-	}
-
-	if (callback_result == FULL_COMPLETED) {
-		f_read(&fil, &samples[SAMP_RATE / 2], SAMP_RATE, (UINT*) &fread_size);
-		fflush(stdout);
-		callback_result = UNKNOWN;
-	}
-
-	if (played_size >= recording_size) {
-		HAL_I2S_DMAStop(&hi2s3);
-	}
-}
 
 /* USER CODE END 0 */
 
@@ -199,7 +116,7 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 
 	// set up music
-	music_init();
+	music_init(hi2s3);
 
 	// light up blue LED
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET);
@@ -212,7 +129,7 @@ int main(void) {
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
-		music_loop();
+		music_loop(hi2s3);
 	}
 	/* USER CODE END 3 */
 }

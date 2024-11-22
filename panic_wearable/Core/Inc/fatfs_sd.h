@@ -25,15 +25,16 @@
 #define CT_SDC		0x06		/* SD */
 #define CT_BLOCK	0x08		/* Block addressing */
 
+#include "integer.h"
+#include "diskio.h"
+
 /* Functions */
-DSTATUS SD_disk_initialize (BYTE pdrv);
-DSTATUS SD_disk_status (BYTE pdrv);
-DRESULT SD_disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count);
-DRESULT SD_disk_write (BYTE pdrv, const BYTE* buff, DWORD sector, UINT count);
-DRESULT SD_disk_ioctl (BYTE pdrv, BYTE cmd, void* buff);
+DSTATUS SD_disk_initialize(BYTE pdrv);
+DSTATUS SD_disk_status(BYTE pdrv);
+DRESULT SD_disk_read(BYTE pdrv, BYTE *buff, DWORD sector, UINT count);
+DRESULT SD_disk_write(BYTE pdrv, const BYTE *buff, DWORD sector, UINT count);
+DRESULT SD_disk_ioctl(BYTE pdrv, BYTE cmd, void *buff);
 
 #define SPI_TIMEOUT 100
-
-
 
 #endif
