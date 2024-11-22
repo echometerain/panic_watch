@@ -179,7 +179,6 @@ int main(void) {
 
 	// light up blue LED
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET);
-//	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6);
 
 	/* USER CODE END 2 */
 
@@ -193,14 +192,16 @@ int main(void) {
 		if (callback_result == HALF_COMPLETED) {
 			// read SAMP_RATE amount of bytes
 			// it's 16 bit audio so that's only half
-			f_read(&fil, samples, SAMP_RATE, (UINT*) fread_size);
+			f_read(&fil, samples, SAMP_RATE, (UINT*) &fread_size);
 			callback_result = UNKNOWN;
+//			fread_size += SAMP_RATE;
 		}
 
 		if (callback_result == FULL_COMPLETED) {
 			f_read(&fil, &samples[SAMP_RATE / 2], SAMP_RATE,
-					(UINT*) fread_size);
+					(UINT*) &fread_size);
 			callback_result = UNKNOWN;
+//			fread_size += SAMP_RATE;
 		}
 
 		if (played_size >= recording_size) {
