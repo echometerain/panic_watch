@@ -41,8 +41,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* Disk status */
-static volatile DSTATUS Stat = STA_NOINIT;
-
+static volatile DSTATUS Stat = 0;
 /* USER CODE END DECL */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -157,7 +156,7 @@ DRESULT USER_ioctl (
 )
 {
   /* USER CODE BEGIN IOCTL */
-	DRESULT res = RES_ERROR;
+//	DRESULT res = RES_ERROR;
 	return SD_disk_ioctl(pdrv, cmd, buff);
   /* USER CODE END IOCTL */
 }

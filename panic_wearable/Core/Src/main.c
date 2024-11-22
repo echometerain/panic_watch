@@ -172,9 +172,10 @@ int main(void) {
 
 	fresult = f_open(&fil, "/music.wav", FA_READ);
 	f_lseek(&fil, 40); // hard-coded file size descriptor (WAVE standard)
-	f_read(&fil, &recording_size, 4, (UINT*) fread_size);
+	f_read(&fil, &recording_size, 4, (UINT*) &fread_size);
 	recording_size /= 2; // 16 bit
-	f_read(&fil, samples, 2 * SAMP_RATE, (UINT*) fread_size); // read 16k bytes (1s of data)
+	fresult = f_read(&fil, samples, 2 * SAMP_RATE, (UINT*) &fread_size); // read 16k bytes (1s of data)
+	played_size = 40 + 2 * SAMP_RATE;
 	HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t*) samples, SAMP_RATE); // open data transmit hook?
 
 	// light up blue LED
@@ -192,16 +193,24 @@ int main(void) {
 		if (callback_result == HALF_COMPLETED) {
 			// read SAMP_RATE amount of bytes
 			// it's 16 bit audio so that's only half
+			printf("half complete!\n");
+			printf("%d\n", played_size);
 			f_read(&fil, samples, SAMP_RATE, (UINT*) &fread_size);
+//			fresult = f_lseek(&fil, played_size);
+//			printf("%d\n", (int) fresult);
+			fflush(stdout);
 			callback_result = UNKNOWN;
-//			fread_size += SAMP_RATE;
 		}
 
 		if (callback_result == FULL_COMPLETED) {
+			printf("complete!\n");
+			printf("%d\n", played_size);
 			f_read(&fil, &samples[SAMP_RATE / 2], SAMP_RATE,
 					(UINT*) &fread_size);
+//			fresult = f_lseek(&fil, played_size);
+//			printf("%d\n", (int) fresult);
+			fflush(stdout);
 			callback_result = UNKNOWN;
-//			fread_size += SAMP_RATE;
 		}
 
 		if (played_size >= recording_size) {
