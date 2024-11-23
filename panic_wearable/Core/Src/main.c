@@ -116,7 +116,7 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 
 	// set up music
-	music_init(hi2s3);
+	music_init(&hi2s3);
 
 	// light up blue LED
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET);
@@ -129,7 +129,7 @@ int main(void) {
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
-		music_loop(hi2s3);
+		music_loop(&hi2s3);
 	}
 	/* USER CODE END 3 */
 }

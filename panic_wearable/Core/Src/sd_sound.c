@@ -29,7 +29,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s) {
 }
 
 // Code credit: https://www.youtube.com/watch?v=spVIZO-jbxE
-void music_init(I2S_HandleTypeDef i2s) {
+void music_init(I2S_HandleTypeDef *i2s) {
 	fresult = f_mount(&fs, "/", 1);
 	if (fresult != FR_OK) {
 		printf("ERROR!!! in mounting SD CARD...\n");
@@ -46,11 +46,11 @@ void music_init(I2S_HandleTypeDef i2s) {
 	recording_size /= 2; // 16 bit
 	fresult = f_read(&fil, samples, 2 * SAMP_RATE, (UINT*) &fread_size); // read 16k bytes (1s of data)
 	played_size = 40 + 2 * SAMP_RATE;
-	HAL_I2S_Transmit_DMA(&i2s, (uint16_t*) samples, SAMP_RATE); // open data transmit hook
+	HAL_I2S_Transmit_DMA(i2s, (uint16_t*) samples, SAMP_RATE); // open data transmit hook
 }
 
 // Code credit: https://www.youtube.com/watch?v=spVIZO-jbxE
-void music_loop(I2S_HandleTypeDef i2s) {
+void music_loop(I2S_HandleTypeDef *i2s) {
 	if (callback_result == HALF_COMPLETED) {
 		// read SAMP_RATE amount of bytes
 		// it's 16 bit audio so that's only half
@@ -67,6 +67,6 @@ void music_loop(I2S_HandleTypeDef i2s) {
 	}
 
 	if (played_size >= recording_size) {
-		HAL_I2S_DMAStop(&i2s);
+		HAL_I2S_DMAStop(i2s);
 	}
 }
