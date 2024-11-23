@@ -14,3 +14,5 @@ panic_watch_sch/panic_watch_sch-backups
 /*.axf
 /*.sct
 /*.out
+
+desktop.ini
