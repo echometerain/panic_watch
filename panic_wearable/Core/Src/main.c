@@ -84,7 +84,6 @@ static void MX_TIM1_Init(void);
 static float Calculate_Voltage(uint32_t adc_value);
 static float Calculate_Resistance(uint32_t adc_value);
 static float Calculate_MicroSiemens(uint32_t adc_value);
-static void floatToString(float value, char* str, uint8_t precision);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -113,47 +112,6 @@ static float Calculate_MicroSiemens(uint32_t adc_value) {
 	return 1000000 / Calculate_Resistance(adc_value) ;
 }
 
-static void floatToString(float value, char* str, uint8_t precision) {
-    int intPart = (int)value; // Extract the integer part
-    float fracPart = value - intPart; // Extract the fractional part
-
-    // Convert the integer part to string
-    char* temp = str;
-    if (intPart == 0) {
-        *temp++ = '0'; // Handle zero case
-    } else {
-        if (intPart < 0) {
-            *temp++ = '-'; // Handle negative numbers
-            intPart = -intPart;
-        }
-
-        // Convert integer part to string
-        int reverseInt = 0;
-        while (intPart > 0) {
-            reverseInt = reverseInt * 10 + (intPart % 10);
-            intPart /= 10;
-        }
-
-        // Now reverse the integer part
-        while (reverseInt > 0) {
-            *temp++ = (reverseInt % 10) + '0';
-            reverseInt /= 10;
-        }
-    }
-
-    // Add the decimal point
-    *temp++ = '.';
-
-    // Convert the fractional part to string with specified precision
-    for (uint8_t i = 0; i < precision; i++) {
-        fracPart *= 10;
-        int fracDigit = (int)fracPart;
-        *temp++ = fracDigit + '0';
-        fracPart -= fracDigit;
-    }
-
-    *temp = '\0'; // Null-terminate the string
-}
 /* USER CODE END 0 */
 
 /**
