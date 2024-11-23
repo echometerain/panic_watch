@@ -19,7 +19,7 @@ FRESULT fresult; // file result object
 int16_t samples[SAMP_RATE]; // song bytes
 I2S_HandleTypeDef *i2s; // i2s object
 
-uint32_t fread_size = 0;
+uint32_t fread_size = 0; // always resets to 0 for some reason
 uint32_t recording_size = 0;
 uint32_t played_size = 0;
 
