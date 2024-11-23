@@ -110,7 +110,7 @@ static float Calculate_Resistance(uint32_t adc_value) {
 }
 
 static float Calculate_MicroSiemens(uint32_t adc_value) {
-	return 1 / Calculate_Resistance(adc_value) * 1000000;
+	return 1000000 / Calculate_Resistance(adc_value) ;
 }
 
 static void floatToString(float value, char* str, uint8_t precision) {
@@ -203,8 +203,8 @@ int main(void)
 	{
 		char str[20] = "                    ";
 		//snprintf(str, 20, "%.6f", Calculate_Voltage(ADC_Read()));
-		snprintf(str, 20, "%.6f", Calculate_Resistance(ADC_Read()));
-		//snprintf(str, 20, "%.6f", Calculate_MicroSiemens(ADC_Read()));
+		//snprintf(str, 20, "%.6f", Calculate_Resistance(ADC_Read()));
+		snprintf(str, 20, "%.6f", Calculate_MicroSiemens(ADC_Read()));
 		HAL_UART_Transmit(&huart2, str, 20, HAL_MAX_DELAY);
 		HAL_UART_Transmit(&huart2, "\n\n\r", 1, HAL_MAX_DELAY);
 		HAL_Delay(500);
