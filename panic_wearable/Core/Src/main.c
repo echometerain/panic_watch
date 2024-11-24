@@ -65,8 +65,6 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 // STM Microcontroller's VDD voltage
 const float VDD = 3.3;
-// Known resistance in the voltage divider
-const float R_KNOWN = 220;
 
 /* USER CODE END PV */
 
@@ -81,10 +79,9 @@ static void MX_SPI2_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
+uint32_t ADC_Read(void);
 static float Calculate_Voltage(uint32_t adc_value);
-static float Calculate_Resistance(uint32_t adc_value);
-static float Calculate_MicroSiemens(uint32_t adc_value);
-static void floatToString(float value, char* str, uint8_t precision);
+void Print_Float(float value);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -101,59 +98,14 @@ static float Calculate_Voltage(uint32_t adc_value) {
 	return (float)adc_value / 4095 * VDD;
 }
 
-static float Calculate_Resistance(uint32_t adc_value) {
-    // Convert ADC value to voltage
-    float V_out = Calculate_Voltage(adc_value);
-    // Apply voltage divider formula to calculate unknown resistance
-    float R_unknown = R_KNOWN * V_out / (VDD - V_out);
-    return R_unknown;
+void Print_Float(float value) {
+	char str[20] = "                    ";
+	snprintf(str, 20, "%.6f", value);
+	HAL_UART_Transmit(&huart2, str, 20, HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart2, "\t", 1, HAL_MAX_DELAY);
+
 }
 
-static float Calculate_MicroSiemens(uint32_t adc_value) {
-	return 1000000 / Calculate_Resistance(adc_value) ;
-}
-
-static void floatToString(float value, char* str, uint8_t precision) {
-    int intPart = (int)value; // Extract the integer part
-    float fracPart = value - intPart; // Extract the fractional part
-
-    // Convert the integer part to string
-    char* temp = str;
-    if (intPart == 0) {
-        *temp++ = '0'; // Handle zero case
-    } else {
-        if (intPart < 0) {
-            *temp++ = '-'; // Handle negative numbers
-            intPart = -intPart;
-        }
-
-        // Convert integer part to string
-        int reverseInt = 0;
-        while (intPart > 0) {
-            reverseInt = reverseInt * 10 + (intPart % 10);
-            intPart /= 10;
-        }
-
-        // Now reverse the integer part
-        while (reverseInt > 0) {
-            *temp++ = (reverseInt % 10) + '0';
-            reverseInt /= 10;
-        }
-    }
-
-    // Add the decimal point
-    *temp++ = '.';
-
-    // Convert the fractional part to string with specified precision
-    for (uint8_t i = 0; i < precision; i++) {
-        fracPart *= 10;
-        int fracDigit = (int)fracPart;
-        *temp++ = fracDigit + '0';
-        fracPart -= fracDigit;
-    }
-
-    *temp = '\0'; // Null-terminate the string
-}
 /* USER CODE END 0 */
 
 /**
@@ -194,20 +146,44 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, 0);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		char str[20] = "                    ";
-		//snprintf(str, 20, "%.6f", Calculate_Voltage(ADC_Read()));
-		//snprintf(str, 20, "%.6f", Calculate_Resistance(ADC_Read()));
-		snprintf(str, 20, "%.6f", Calculate_MicroSiemens(ADC_Read()));
-		HAL_UART_Transmit(&huart2, str, 20, HAL_MAX_DELAY);
-		HAL_UART_Transmit(&huart2, "\n\n\r", 1, HAL_MAX_DELAY);
-		HAL_Delay(500);
+		int prev = 0;
+		float rms = 0;
+
+		for (int i = 0; i < 50000; i++) {
+			int32_t volume = (int32_t)ADC_Read();
+
+			// The volume is centered around 2000. Find the absolute value
+			if (volume > 2000) {
+				volume = volume - 2000;
+			} else {
+				volume = 2000 - volume;
+			}
+
+			volume = 0.1 * volume + 0.9 * prev;
+
+			rms += volume;
+
+			prev = volume;
+		}
+
+		rms = sqrt(rms / 50000);
+
+		float volume_percent = rms / 4095 * 100;
+
+		Print_Float(volume_percent);
+
+		if (volume_percent > 0.4) {
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, 1);
+		} else {
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, 0);
+		}
 
     /* USER CODE END WHILE */
 
@@ -301,7 +277,7 @@ static void MX_ADC1_Init(void)
 
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_8;
+  sConfig.Channel = ADC_CHANNEL_9;
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)

@@ -69,6 +69,8 @@ void Error_Handler(void);
 #define LD2_GPIO_Port GPIOA
 #define Skin_Conductivity_ADC_Pin GPIO_PIN_0
 #define Skin_Conductivity_ADC_GPIO_Port GPIOB
+#define Microphone_ADC_Pin GPIO_PIN_1
+#define Microphone_ADC_GPIO_Port GPIOB
 #define GPIO_Output_Pin GPIO_PIN_6
 #define GPIO_Output_GPIO_Port GPIOC
 #define TMS_Pin GPIO_PIN_13
