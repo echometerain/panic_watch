@@ -81,6 +81,7 @@ static void MX_SPI2_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
+uint32_t ADC_Read(void);
 static float Calculate_Voltage(uint32_t adc_value);
 static float Calculate_Resistance(uint32_t adc_value);
 static float Calculate_MicroSiemens(uint32_t adc_value);
