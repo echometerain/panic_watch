@@ -65,6 +65,15 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 // STM Microcontroller's VDD voltage
 const float VDD = 3.3;
+// Number of microphone sample frames from the microphone breakout
+const unsigned int QUERIES = 50000;
+// "To reduce rapid fluctuations, apply a simple moving average or low-pass filter to the amplitude values"
+const float ALPHA = 0.1;
+// The audio readings are centered around 2000, instead of 0 or 4095
+const int MIDPOINT = 2000;
+// The threshold that the volume percentage has the cross
+const float THRESHOLD = 0.4;
+
 
 /* USER CODE END PV */
 
@@ -156,30 +165,30 @@ int main(void)
 		int prev = 0;
 		float rms = 0;
 
-		for (int i = 0; i < 50000; i++) {
+		for (int i = 0; i < QUERIES; i++) {
 			int32_t volume = (int32_t)ADC_Read();
 
 			// The volume is centered around 2000. Find the absolute value
-			if (volume > 2000) {
-				volume = volume - 2000;
+			if (volume > MIDPOINT) {
+				volume = volume - MIDPOINT;
 			} else {
-				volume = 2000 - volume;
+				volume = MIDPOINT - volume;
 			}
 
-			volume = 0.1 * volume + 0.9 * prev;
+			volume = ALPHA * volume + (1 - ALPHA) * prev;
 
 			rms += volume;
 
 			prev = volume;
 		}
 
-		rms = sqrt(rms / 50000);
+		rms = sqrt(rms / QUERIES);
 
 		float volume_percent = rms / 4095 * 100;
 
 		Print_Float(volume_percent);
 
-		if (volume_percent > 0.4) {
+		if (volume_percent > THRESHOLD) {
 			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, 1);
 		} else {
 			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, 0);
