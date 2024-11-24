@@ -40,7 +40,7 @@
 /* USER CODE BEGIN PD */
 const int CLOCK_SPEED_KHZ = 84000; // khz
 const int CLOCK_38KHZ = CLOCK_SPEED_KHZ * 2 / 38 - 1; // TIM2 prescaler set to 4420
-/* USER CODE END PD */
+		/* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
@@ -198,7 +198,7 @@ int main(void) {
 	// set up software
 	music_init(&hi2s3);
 	lcd_init();
-	sensors_init(&htim3);
+	sensor_init(&htim3, &hadc1);
 
 	/* USER CODE END 2 */
 
