@@ -29,10 +29,10 @@ static float avg_SCL(uint16_t arr[], int cap);
 
 static const float VDD = 3.78f; // STM Microcontroller's VDD voltage
 static const float R_KNOWN = 92000; // Known resistance in the voltage divider
-// heart rate drops by 3bpm before attack
-static const float PANIC_HR_DROP = 0.05f; // hz
-// breathing rate drops by 1bpm before attack
-static const float PANIC_BR_DROP = 0.016f; // hz
+// heart rate drops by 3bpm before attack (/2 for edge cases)
+static const float PANIC_HR_DROP = 3.0f / 60 / 2; // hz
+// breathing rate drops by 1bpm before attack (/2 for edge cases)
+static const float PANIC_BR_DROP = 1.0f / 60 / 2; // hz
 static const float PANIC_SKN_COND = 13.5f; // Microsiemens
 
 static const float BR_MAX = 50 / 60.0f; // max breathing rate we'll test for
@@ -70,14 +70,14 @@ void sensor_init(TIM_HandleTypeDef *timer, ADC_HandleTypeDef *local_adc) {
 }
 
 void timer_callback() {
-	if (panic_timer > 0) {
+	if (panic_timer > 0) { // panic prediction timer
 		if (panic_timer == 1) {
 			user_is_panicking = true;
 		}
 		panic_timer--;
 		return;
 	}
-	if (panic_mode) {
+	if (panic_mode) { // don't record if playing music
 		return;
 	}
 	ADC_complete = false;

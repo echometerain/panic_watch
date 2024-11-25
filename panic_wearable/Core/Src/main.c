@@ -209,16 +209,17 @@ void handle_will_panic() { // display panic attack prediction
 	char message[CHAR_PER_LINE + 1];
 	sprintf(message, "= 66.6%% (in %d min)", will_panic_in_min());
 	Lcd_string(&lcd, message);
-	HAL_TIM_Base_Stop_IT(&htim4);
+	HAL_TIM_Base_Stop_IT(&htim4); // stop motivational messages
 }
 
 void handle_msg_it() { // handle motivational message interrupt
 	Lcd_clear(&lcd);
-	if (msg_finished) {
+	if (msg_finished) { // reset if current message finished
 		msg_idx = rand() % NUM_MSG;
 		msg_finished = false;
 		msg_line = 0;
 	}
+	// hacky null char swapping to print each line
 	for (int i = 0; i < NUM_LINES; i++) {
 		Lcd_cursor(&lcd, i, 0);
 		int end_ch_idx = (msg_line + i + 1) * CHAR_PER_LINE;
