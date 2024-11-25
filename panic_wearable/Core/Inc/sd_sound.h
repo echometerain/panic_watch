@@ -8,12 +8,13 @@
 #ifndef INC_SD_SOUND_H_
 #define INC_SD_SOUND_H_
 
-#include "fatfs_sd.h"
-#include "diskio.h"
-#include "user_diskio.h"
-#include "ff.h"
+#include "stm32f4xx_hal.h"
 
 #define SAMP_RATE 8000
+
+typedef enum {
+	UNKNOWN, HALF_COMPLETED, FULL_COMPLETED
+} CallBack_Result_t;
 
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s);
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s);

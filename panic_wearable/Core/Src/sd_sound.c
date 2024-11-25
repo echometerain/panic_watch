@@ -7,9 +7,10 @@
 
 #include "sd_sound.h"
 
-typedef enum {
-	UNKNOWN, HALF_COMPLETED, FULL_COMPLETED
-} CallBack_Result_t;
+#include "fatfs.h"
+
+#include <stdlib.h>
+#include <stdio.h>
 
 // FatFS sound
 // Code credit: https://www.youtube.com/watch?v=spVIZO-jbxE
@@ -38,12 +39,12 @@ void music_init(I2S_HandleTypeDef *i2s_local) {
 	i2s = i2s_local;
 	fresult = f_mount(&fs, "/", 1);
 	if (fresult != FR_OK) {
-//		printf("ERROR!!! in mounting SD CARD...\n");
-//		fflush(stdout);
+		printf("ERROR!!! in mounting SD CARD...\n");
+		fflush(stdout);
 		return;
 	} else {
-//		printf("SD CARD mounted successfully...\n");
-//		fflush(stdout);
+		printf("SD CARD mounted successfully...\n");
+		fflush(stdout);
 	}
 	music_setup();
 }
