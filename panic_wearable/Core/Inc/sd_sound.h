@@ -16,12 +16,10 @@ typedef enum {
 	UNKNOWN, HALF_COMPLETED, FULL_COMPLETED
 } CallBack_Result_t;
 
-void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s);
-void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s);
+//void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s);
+//void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s);
 void music_init();
-void music_setup();
 void music_start();
-void music_reset();
 void music_stop();
 void music_loop();
 
