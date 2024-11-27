@@ -172,7 +172,7 @@ void predict_panic() {
 			avg_skn_cond);
 	uint16_t count = (prev_HR - HR >= PANIC_HR_DROP) // count # of indicators
 	+ (prev_BR - BR >= PANIC_BR_DROP) + (avg_skn_cond >= PANIC_SKN_COND);
-	if (count >= 0) {
+	if (count >= 2) {
 		panic_timer = PANIC_IN; // in 45 minutes
 	}
 	prev_HR = HR;
