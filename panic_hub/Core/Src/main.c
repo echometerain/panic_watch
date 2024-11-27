@@ -109,9 +109,12 @@ int main(void)
   lcd = Lcd_create(ports, pins, GPIOC, GPIO_PIN_8, GPIOD, GPIO_PIN_2, LCD_8_BIT_MODE);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 
+
+  //Lcd_cursor(&lcd, 0,1);
+  //Lcd_string(&lcd, "Distress signal");
+
   ////////////
-  Lcd_cursor(&lcd, 0,1);
-  Lcd_string(&lcd, "Distress signal");
+
 /*for ( int x = 1; x <= 200 ; x++ )
 {
 Lcd_cursor(&lcd, 1,7);
@@ -127,14 +130,23 @@ HAL_Delay (1000);
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
-	  if (HAL_UART_Receive(&huart6, &rxData, 1, HAL_MAX_DELAY) == HAL_OK)
-	       {
-		  	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-			  HAL_UART_Transmit(&huart2, "Click", 5, HAL_MAX_DELAY);
-			  //HAL_Delay(1000);
 
-	       }
+	  if (HAL_UART_Receive(&huart6, &rxData, 1, HAL_MAX_DELAY) == HAL_OK)
+	  	       {
+	  		  	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+	  			  HAL_UART_Transmit(&huart2, "Click", 5, HAL_MAX_DELAY);
+
+	  			  Lcd_cursor(&lcd, 0,1);
+	  			  Lcd_string(&lcd, "Distress signal");
+
+	  			  //HAL_Delay(1000);
+
+	  	       }
+
+
+
+    /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -198,6 +210,7 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 0 */
 
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
   TIM_OC_InitTypeDef sConfigOC = {0};
 
@@ -205,11 +218,20 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 1000;
+  htim2.Init.Prescaler = 65535;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 8;
+  htim2.Init.Period = 16;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
   if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
   {
     Error_Handler();
@@ -221,7 +243,7 @@ static void MX_TIM2_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 5;
+  sConfigOC.Pulse = 1;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
