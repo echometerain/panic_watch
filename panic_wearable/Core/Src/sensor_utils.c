@@ -69,6 +69,11 @@ void sensor_init(TIM_HandleTypeDef *timer, ADC_HandleTypeDef *local_adc) {
 	arm_rfft_fast_init_f32(&fft, FFT_BUFFER_SIZE);
 }
 
+// tutorials followed:
+// https://community.st.com/t5/stm32-mcus/using-timers-to-trigger-adc-conversions-periodically/ta-p/49889
+// https://community.st.com/t5/stm32-mcus/how-to-generate-a-one-second-interrupt-using-an-stm32-timer/ta-p/49858
+// https://www.youtube.com/watch?v=AloHXBk6Bfk
+
 void timer_callback() {
 	if (panic_timer > 0) { // panic prediction timer
 		if (panic_timer == 1) {
@@ -111,6 +116,9 @@ static inline float idx2freq(uint16_t idx) { // fft index to frequency
 }
 
 // get maximum frequency in hz
+// tutorials used:
+// https://www.youtube.com/watch?v=d1KvgOwWvkM
+// https://www.youtube.com/watch?v=9P8zSe50HPA
 static float max_freq(float arr[], uint16_t min_idx, uint16_t max_idx) {
 	float fft_output[FFT_BUFFER_SIZE];
 	float fft_mag[FFT_BUFFER_SIZE / 2] = { 0 }; // for debugging
