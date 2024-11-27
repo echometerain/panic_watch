@@ -176,30 +176,30 @@ static void check_button() { // check button state
 }
 
 static void panic() {
-	printf("Panic!\n");
-	fflush(stdout);
+	//printf("Panic!\n");
+	//fflush(stdout);
 
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET); // light up blue LED
-	music_start();
-	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); // start IR transmitter
-	HAL_UART_Transmit(&huart1, "Panic!", 6, HAL_MAX_DELAY);
+	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET); // light up blue LED
+	//music_start();
+	//HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); // start IR transmitter
+	HAL_UART_Transmit(&huart1, "a", 1, HAL_MAX_DELAY);
 	HAL_UART_Transmit(&huart2, "Panic!", 6, HAL_MAX_DELAY);
 
-	HAL_TIM_Base_Start_IT(&htim4); // start motivational messages
+	//HAL_TIM_Base_Start_IT(&htim4); // start motivational messages
 }
 
 static void unpanic() {
-	printf("Unpanic!\n");
-	fflush(stdout);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_RESET); // turn off blue LED
-	music_stop();
-	HAL_UART_Transmit(&huart1, "Unpanic!", 8, HAL_MAX_DELAY);
+	//printf("Unpanic!\n");
+	//fflush(stdout);
+	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_RESET); // turn off blue LED
+	//music_stop();
+	HAL_UART_Transmit(&huart1, "b", 1, HAL_MAX_DELAY);
 	HAL_UART_Transmit(&huart2, "Unpanic!", 8, HAL_MAX_DELAY);
 
-	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1); // stop IR transmitter
-	HAL_TIM_Base_Stop_IT(&htim4); // stop motivational messages
-	Lcd_clear(&lcd);
-	handle_will_panic(); // turn on panic attack predictor
+	//HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1); // stop IR transmitter
+	//HAL_TIM_Base_Stop_IT(&htim4); // stop motivational messages
+	//Lcd_clear(&lcd);
+	//handle_will_panic(); // turn on panic attack predictor
 }
 
 static void handle_will_panic() { // display panic attack prediction
@@ -303,9 +303,9 @@ int main(void)
 	fflush(stdout);
 
 // set up software
-	music_init(&hi2s3);
-	lcd_init();
-	sensor_init(&htim3, &hadc1);
+	//music_init(&hi2s3);
+	//lcd_init();
+	//sensor_init(&htim3, &hadc1);
 
   /* USER CODE END 2 */
 
@@ -316,8 +316,8 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 		check_button();
-		music_loop();
-		handle_will_panic();
+		//music_loop();
+		//handle_will_panic();
 	}
   /* USER CODE END 3 */
 }
