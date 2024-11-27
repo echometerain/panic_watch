@@ -65,6 +65,7 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim5;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
@@ -129,6 +130,7 @@ static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_TIM5_Init(void);
 /* USER CODE BEGIN PFP */
 static void lcd_init();
 static void check_button();
@@ -181,7 +183,7 @@ static void panic() {
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET); // light up blue LED
 	music_start();
-	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); // start IR transmitter
+	// HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); // start IR transmitter
 	HAL_UART_Transmit(&huart1, "1", 1, HAL_MAX_DELAY);
 	HAL_UART_Transmit(&huart2, "Panic!", 6, HAL_MAX_DELAY);
 
@@ -196,7 +198,7 @@ static void unpanic() {
 	HAL_UART_Transmit(&huart1, "0", 1, HAL_MAX_DELAY);
 	HAL_UART_Transmit(&huart2, "Unpanic!", 8, HAL_MAX_DELAY);
 
-	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1); // stop IR transmitter
+	// HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1); // stop IR transmitter
 	HAL_TIM_Base_Stop_IT(&htim4); // stop motivational messages
 	Lcd_clear(&lcd);
 	handle_will_panic(); // turn on panic attack predictor
@@ -288,6 +290,7 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_USART1_UART_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 
 	// get length of every string
@@ -306,6 +309,7 @@ int main(void)
 	music_init(&hi2s3);
 	lcd_init();
 	sensor_init(&htim3, &hadc1);
+	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_1); // for testing HR now
 
   /* USER CODE END 2 */
 
@@ -557,7 +561,7 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 1;
+  sConfigOC.Pulse = 5000;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
@@ -764,6 +768,51 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
+  * @brief TIM5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM5_Init(void)
+{
+
+  /* USER CODE BEGIN TIM5_Init 0 */
+
+  /* USER CODE END TIM5_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM5_Init 1 */
+
+  /* USER CODE END TIM5_Init 1 */
+  htim5.Instance = TIM5;
+  htim5.Init.Prescaler = 8400;
+  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim5.Init.Period = 20000;
+  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_PWM_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 5000;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM5_Init 2 */
+
+  /* USER CODE END TIM5_Init 2 */
+  HAL_TIM_MspPostInit(&htim5);
 
 }
 
