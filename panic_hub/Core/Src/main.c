@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "lcd.h"
+#include <stdbool.h>
 
 /* USER CODE END Includes */
 
@@ -112,6 +113,7 @@ int main(void)
 
   //Lcd_cursor(&lcd, 0,1);
   //Lcd_string(&lcd, "Distress signal");
+  bool panicDetected = false;
 
   ////////////
 
@@ -135,9 +137,13 @@ HAL_Delay (1000);
 	  	       {
 	  		  	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 	  			  HAL_UART_Transmit(&huart2, "Click", 5, HAL_MAX_DELAY);
-
-	  			  Lcd_cursor(&lcd, 0,1);
-	  			  Lcd_string(&lcd, "Distress signal");
+	  			  panicDetected = !panicDetected;
+	  			  if (panicDetected) {
+		  			  Lcd_cursor(&lcd, 0,1);
+		  			  Lcd_string(&lcd, "Distress signal");
+	  			  } else {
+	  				  Lcd_clear(&lcd);
+	  			  }
 
 	  			  //HAL_Delay(1000);
 
