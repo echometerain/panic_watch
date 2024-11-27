@@ -41,7 +41,7 @@
 /* USER CODE BEGIN PD */
 // const int CLOCK_SPEED_KHZ = 84000; // khz
 // const int CLOCK_38KHZ = CLOCK_SPEED_KHZ * 2 / 38 - 1; // TIM2 prescaler set to 4420
-#define CHAR_PER_LINE 18
+#define CHAR_PER_LINE 16
 #define NUM_LINES 2
 #define NUM_MSG 25
 #define MSG_BUF_SIZE 128
@@ -79,36 +79,36 @@ static Lcd_PinType pins[] = { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2,
 GPIO_PIN_3,
 GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7 };
 
-char msg[NUM_MSG][MSG_BUF_SIZE] =
-		{ { "You can do it!!!!!!!!!!!!!!!!" },
-				{ "You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" }, {
-						"You can do it!!!!!!!!!!!!!!!!" } };
+char msg[NUM_MSG][MSG_BUF_SIZE] = { {
+		"Feel your feet on the ground, you are safe" }, {
+		"Calm your mind; sense the world around you" }, {
+		"Focus on your breath; You are going to be okay" }, {
+		"Believe in yourself; You are worth it" }, {
+		"Even storms pass; peace will remain" }, {
+		"Don't be too hard on yourself. Take care" }, {
+		"Inhale deeply; exhale slowly. You're going to be okay." }, {
+		"Go to your safe place, you are going to be okay" }, {
+		"Things may seem hectic, but it'll all be okay" }, {
+		"Breathe in for 4s, hold for 4s, out for 4s, hold for 4s." }, {
+		"Focus on a good memory and what brings you joy" }, {
+		"What you are feeling is scary, but it won't hurt you" }, {
+		"Everything will be ok. This soon shall pass" }, {
+		"You don't deserve this" }, {
+		"You will survive and you will be stronger" }, {
+		"You are kind, you are brave, and you are loved" }, {
+		"See three things, hear three sounds, and touch three objects" }, {
+		"Remember to take your medicine, they help!" }, {
+		"Be proud of yourself, I'm proud of you" }, {
+		"It's okay to accept yourself" }, {
+		"Allow your mind & heart to rest for a while" }, {
+		"You are bigger than your anxiety" }, { "Its okay to not be okay" }, {
+		"Go easy on yourself, you've done enough" }, {
+		"You can make it through this <3" } };
 static char msg_strlen[NUM_MSG];
 static int msg_idx = 0;
 static int msg_line = 0;
 static bool msg_finished = true;
+static int panic_min = 0;
 
 Lcd_HandleTypeDef lcd;
 extern volatile bool ADC_complete;
@@ -132,6 +132,7 @@ static void lcd_init();
 static void check_button();
 static void panic();
 static void unpanic();
+static void handle_will_panic();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -193,23 +194,23 @@ static void unpanic() {
 	handle_will_panic(); // turn on panic attack predictor
 }
 
-void handle_will_panic() { // display panic attack prediction
+static void handle_will_panic() { // display panic attack prediction
+	if (panic_mode || !will_panic() || panic_min == will_panic_in_min()) {
+		return;
+	}
 	if (user_is_panicking) { // if timer reaches 0
 		panic();
 		user_is_panicking = false;
 		return;
 	}
-	if (!will_panic()) {
-		return;
-	}
 	Lcd_clear(&lcd);
 	Lcd_cursor(&lcd, 0, 0);
-	Lcd_string(&lcd, "P(PANIC ATTACK)");
-	Lcd_cursor(&lcd, 1, 0);
 	char message[CHAR_PER_LINE + 1];
-	sprintf(message, "= 66.6%% (in %d min)", will_panic_in_min());
+	sprintf(message, "PANIC in %d min", will_panic_in_min());
 	Lcd_string(&lcd, message);
-	HAL_TIM_Base_Stop_IT(&htim4); // stop motivational messages
+	Lcd_cursor(&lcd, 1, 0);
+	Lcd_string(&lcd, "66.6% chance");
+	panic_min = will_panic_in_min();
 }
 
 void handle_msg_it() { // handle motivational message interrupt
@@ -306,6 +307,7 @@ int main(void) {
 		/* USER CODE BEGIN 3 */
 		check_button();
 		music_loop();
+		handle_will_panic();
 	}
 	/* USER CODE END 3 */
 }
@@ -576,9 +578,9 @@ static void MX_TIM2_Init(void) {
 
 	/* USER CODE END TIM2_Init 1 */
 	htim2.Instance = TIM2;
-	htim2.Init.Prescaler = 10000;
+	htim2.Init.Prescaler = 1000;
 	htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim2.Init.Period = 16;
+	htim2.Init.Period = 8;
 	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
 	if (HAL_TIM_Base_Init(&htim2) != HAL_OK) {
@@ -598,7 +600,7 @@ static void MX_TIM2_Init(void) {
 		Error_Handler();
 	}
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = 8;
+	sConfigOC.Pulse = 5;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 	if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1)
@@ -672,7 +674,7 @@ static void MX_TIM4_Init(void) {
 
 	/* USER CODE END TIM4_Init 1 */
 	htim4.Instance = TIM4;
-	htim4.Init.Prescaler = 16799;
+	htim4.Init.Prescaler = 25199;
 	htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
 	htim4.Init.Period = 10000;
 	htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;

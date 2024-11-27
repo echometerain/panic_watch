@@ -18,6 +18,6 @@ void sensor_init(TIM_HandleTypeDef *timer, ADC_HandleTypeDef *local_adc);
 void timer_callback();
 void predict_panic();
 bool will_panic();
-uint16_t will_panic_in_min();
+char will_panic_in_min();
 
 #endif /* INC_SENSOR_UTILS_H_ */
