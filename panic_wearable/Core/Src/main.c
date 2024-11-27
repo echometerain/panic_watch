@@ -182,7 +182,7 @@ static void panic() {
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET); // light up blue LED
 	music_start();
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); // start IR transmitter
-	HAL_UART_Transmit(&huart1, "Panic!", 6, HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart1, "1", 1, HAL_MAX_DELAY);
 	HAL_UART_Transmit(&huart2, "Panic!", 6, HAL_MAX_DELAY);
 
 	HAL_TIM_Base_Start_IT(&htim4); // start motivational messages
@@ -193,7 +193,7 @@ static void unpanic() {
 	fflush(stdout);
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_RESET); // turn off blue LED
 	music_stop();
-	HAL_UART_Transmit(&huart1, "Unpanic!", 8, HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart1, "0", 1, HAL_MAX_DELAY);
 	HAL_UART_Transmit(&huart2, "Unpanic!", 8, HAL_MAX_DELAY);
 
 	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1); // stop IR transmitter
