@@ -14,9 +14,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define FFT_BUFFER_SIZE 2048
+#define FFT_BUFFER_SIZE 512 // was 2048
 #define FFT_FLAG 0 // regular fft (not ifft)
-#define FFT_DURATION 128 // takes 128 seconds to do an fft
+#define FFT_DURATION 32 // takes x seconds to do an fft, was 128
 #define DMA_NUM_DATA 3
 
 static inline uint16_t freq2idx(float freq);
@@ -35,11 +35,11 @@ static const float PANIC_HR_DROP = 3.0f / 60 / 2; // hz
 static const float PANIC_BR_DROP = 1.0f / 60 / 2; // hz
 static const float PANIC_SKN_COND = 13.5f; // Microsiemens
 
-static const float BR_MAX = 50 / 60.0f; // max breathing rate we'll test for
-static const float BR_MIN = 10 / 60.0f;
+static const float BR_MAX = 2 * 50 / 60.0f; // max breathing rate we'll test for
+static const float BR_MIN = 2 * 12 / 60.0f; // 2 for breath in & breath out
 
-static const int RATE = FFT_BUFFER_SIZE / FFT_DURATION; // read sensors 16 times per second
-static const int PANIC_IN = 45 * 60 * RATE; // panic attack in 45 minutes
+static const int RATE = FFT_BUFFER_SIZE / FFT_DURATION; // read sensors x times per second
+static const int PANIC_IN = 45 * 60 * RATE - 1; // panic attack in 45 minutes
 
 // const int SKN_TICKS = RATE; // read skin conductance every second
 // static const int TICKS = 84; // read sensors every 84th clock tick
@@ -86,11 +86,11 @@ void timer_callback() {
 		;
 	HR_data[HRBR_incr] = (float) ADC_results[0] - 2048; // half of ADC range
 	BR_data[HRBR_incr] = (float) ADC_results[2] - 2048; // half of ADC range
-	if (HRBR_incr % 16 == 0) {
+	if (HRBR_incr % RATE == 0) {
 		skn_cond[skn_incr] = ADC_results[1];
 		printf("time: %ds, HR: %f, BR: %f, skin: %fohm\n", skn_incr,
 				(float) HR_data[HRBR_incr], (float) BR_data[HRBR_incr],
-				Calculate_MicroSiemens(skn_cond[skn_incr]));
+				Calculate_Resistance(skn_cond[skn_incr]));
 		fflush(stdout);
 		skn_incr++;
 	}
@@ -103,23 +103,25 @@ void timer_callback() {
 }
 
 static inline uint16_t freq2idx(float freq) { // frequency to fft index
-	return FFT_BUFFER_SIZE * freq / RATE;
+	return (FFT_BUFFER_SIZE) * freq / RATE;
 }
 
 static inline float idx2freq(uint16_t idx) { // fft index to frequency
-	return RATE / ((float) FFT_BUFFER_SIZE) * idx;
+	return idx * RATE / ((float) FFT_BUFFER_SIZE);
 }
 
 // get maximum frequency in hz
 static float max_freq(float arr[], uint16_t min_idx, uint16_t max_idx) {
 	float fft_output[FFT_BUFFER_SIZE];
+	float fft_mag[FFT_BUFFER_SIZE / 2] = { 0 }; // for debugging
 	arm_rfft_fast_f32(&fft, arr, fft_output, FFT_FLAG);
-	uint16_t max_mag = 0;
+	float max_mag = 0;
 	uint16_t max_i = 0;
 	for (uint16_t i = min_idx; i < max_idx; i++) {
 		// get magnitude
-		uint16_t mag = fft_output[2 * i] * fft_output[2 * i]
+		float mag = fft_output[2 * i] * fft_output[2 * i]
 				+ fft_output[2 * i + 1] * fft_output[2 * i + 1];
+		fft_mag[i] = mag; // debugging
 		if (mag > max_mag) { // find max magnitude
 			max_mag = mag;
 			max_i = i;
@@ -129,7 +131,7 @@ static float max_freq(float arr[], uint16_t min_idx, uint16_t max_idx) {
 }
 
 static inline float Calculate_Voltage(uint16_t adc_value) {
-	return ((float) adc_value) / 4096 * VDD;
+	return ((float) adc_value) / 4096 * VDD; // 4096 is max adc value
 }
 
 static inline float Calculate_Resistance(uint16_t adc_value) {
@@ -166,11 +168,12 @@ void predict_panic() {
 	float HR = max_freq(HR_data, 1, FFT_BUFFER_SIZE / 2); // 0th freq bin counts constants
 	float BR = max_freq(BR_data, BR_MIN_IDX, BR_MAX_IDX); // from min to max normal BR
 	float avg_skn_cond = avg_SCL(skn_cond, FFT_DURATION);
+	printf("FFT Results! HR: %fhz, BR: %fhz, skin: %fuS\n", HR, BR,
+			avg_skn_cond);
 	uint16_t count = (prev_HR - HR >= PANIC_HR_DROP) // count # of indicators
 	+ (prev_BR - BR >= PANIC_BR_DROP) + (avg_skn_cond >= PANIC_SKN_COND);
-	if (count >= 2) {
+	if (count >= 0) {
 		panic_timer = PANIC_IN; // in 45 minutes
-		handle_will_panic();
 	}
 	prev_HR = HR;
 	prev_BR = BR;
@@ -180,6 +183,6 @@ bool will_panic() {
 	return panic_timer > 0;
 }
 
-uint16_t will_panic_in_min() { // user will panic in x minutes
-	return panic_timer / 16 / 60;
+char will_panic_in_min() { // user will panic in x minutes
+	return panic_timer / RATE / 60;
 }
